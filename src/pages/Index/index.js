@@ -193,6 +193,7 @@ export default function Index() {
               top: '6vh',
               right: '7vh',
               height: '6vh',
+              minHeight: '48px',
               fontSize: '2vh',
               zIndex: 600,
               opacity: downloadLoading ? '40%' : '100%',
@@ -312,7 +313,7 @@ export default function Index() {
               <br />
 
               <h3 className="h2" style={{ color: '#eee' }}>
-                Vídeos relacionados:
+                <strong>Vídeos relacionados:</strong>
               </h3>
               <Container
                 className="d-flex flex-wrap justify-content-around"
@@ -402,8 +403,7 @@ export default function Index() {
             display: 'flex',
             justifyContent: 'center',
             background: '#eee',
-            position: 'absolute',
-            bottom: '0',
+            marginTop: '50%',
             width: '100%',
             maxWidth: '712px',
           }}
