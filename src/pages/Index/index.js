@@ -17,6 +17,7 @@ import github from '../../assets/git.svg';
 export default function Index() {
   const [initialized, setInitialized] = useState(false);
   const [url, setUrl] = useState(false);
+  const [hash, setHash] = useState(false);
   const [videoInfo, setVideoInfo] = useState(false);
 
   const [linkLoading, setLinkLoading] = useState(false);
