@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { Container, Form, Card, Button, Row, Spinner } from 'react-bootstrap';
+import { Line } from 'rc-progress';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 
@@ -17,7 +18,6 @@ import github from '../../assets/git.svg';
 export default function Index() {
   const [initialized, setInitialized] = useState(false);
   const [url, setUrl] = useState(false);
-  const [hash, setHash] = useState(false);
   const [videoInfo, setVideoInfo] = useState(false);
 
   const [linkLoading, setLinkLoading] = useState(false);
@@ -25,6 +25,7 @@ export default function Index() {
   const [arrayGifs, setArrayGifs] = useState(false);
 
   const [selectedVideos, setSelectedVideos] = useState(false);
+  const [percentProgress, setPercentProgress] = useState(false);
 
   const getVideoInfo = useCallback(async (youtubeUrl) => {
     setLinkLoading(true);
@@ -79,35 +80,69 @@ export default function Index() {
     }
   };
 
+  const sleep = (milliseconds) => {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  };
+
   const handleDownloadOne = useCallback(async (urlToDownload, filename) => {
     if (url) {
       window.scrollTo(0, 0);
       setDownloadLinkLoading(true);
       try {
-        api
-          .post(
-            'download',
-            { youtubeUrl: urlToDownload },
-            { responseType: 'blob' }
-          )
-          .then((response) => {
-            const file = new Blob([response.data], {
-              type:
-                'audio/mpeg3;audio/x-mpeg-3;video/mpeg;video/x-mpeg;text/xml',
-            });
-            const a = document.createElement('a');
-            document.body.appendChild(a);
-            const blobUrl = window.URL.createObjectURL(file);
-            a.href = blobUrl;
-            a.download = `${filename}.mp3`;
-            a.click();
+        const response = await api.post('download', {
+          youtubeUrl: urlToDownload,
+        });
 
-            setDownloadLinkLoading(false);
-          })
-          .catch((error) => {
-            setDownloadLinkLoading(false);
-            toast.error('Erro ao baixar música');
+        const { data } = response;
+
+        if (!data.hash) {
+          setDownloadLinkLoading(false);
+          toast.error('Erro ao baixar música');
+          return;
+        }
+
+        let control = false;
+
+        while (!control) {
+          const responseCheckStatus = await api.post('checkStatus', {
+            hash: data.hash,
           });
+
+          if (responseCheckStatus.data.err) {
+            setDownloadLinkLoading(false);
+            toast.error(
+              'Erro ao baixar música. Falha ao processar vídeo no servidor'
+            );
+            return;
+          }
+
+          if (responseCheckStatus.data.isReady) {
+            control = true;
+            api
+              .post('getFile', { hash: data.hash }, { responseType: 'blob' })
+              .then((response) => {
+                const file = new Blob([response.data], {
+                  type:
+                    'audio/mpeg3;audio/x-mpeg-3;video/mpeg;video/x-mpeg;text/xml',
+                });
+                const a = document.createElement('a');
+                document.body.appendChild(a);
+                const blobUrl = window.URL.createObjectURL(file);
+                a.href = blobUrl;
+                a.download = `${filename}.mp3`;
+                a.click();
+
+                setDownloadLinkLoading(false);
+              })
+              .catch((error) => {
+                setDownloadLinkLoading(false);
+                toast.error('Erro ao baixar música');
+              });
+          } else {
+            await sleep(3000);
+            console.log('Aguardando arquivo ficar pronto');
+          }
+        }
       } catch (error) {
         setDownloadLinkLoading(false);
       }
@@ -126,31 +161,72 @@ export default function Index() {
 
       setDownloadLinkLoading(true);
       try {
-        api
-          .post(
-            'downloadMany',
-            { relatedVideoInfo: selectedVideos },
-            { responseType: 'blob' }
-          )
-          .then((response) => {
-            const file = new Blob([response.data], {
-              type: 'application/zip',
-            });
-            const a = document.createElement('a');
-            document.body.appendChild(a);
-            const blobUrl = window.URL.createObjectURL(file);
-            a.href = blobUrl;
-            a.download = `${videoInfo.title} e outras ${
-              relatedVideoInfo.length - 1
-            }.zip`;
-            a.click();
+        const response = await api.post('downloadMany', {
+          relatedVideoInfo: selectedVideos,
+        });
 
-            setDownloadLinkLoading(false);
-          })
-          .catch((error) => {
-            setDownloadLinkLoading(false);
-            toast.error('Erro ao baixar música');
+        const { data } = response;
+
+        if (!data.hash) {
+          setDownloadLinkLoading(false);
+          toast.error('Erro ao baixar música');
+          return;
+        }
+
+        let control = false;
+
+        const maxVideoForDownloadLength = selectedVideos.length + 1;
+
+        while (!control) {
+          const responseCheckStatus = await api.post('checkStatus', {
+            hash: data.hash,
           });
+
+          if (responseCheckStatus.data.err) {
+            setDownloadLinkLoading(false);
+
+            toast.error(
+              'Erro ao baixar música. Falha ao processar vídeo no servidor'
+            );
+            return;
+          }
+
+          if (responseCheckStatus.data.tempDownloaded) {
+            const percentTemp =
+              (responseCheckStatus.data.tempDownloaded * 100) /
+              maxVideoForDownloadLength;
+            setPercentProgress(percentTemp);
+          }
+
+          if (responseCheckStatus.data.isReady) {
+            control = true;
+
+            api
+              .post('getFile', { hash: data.hash }, { responseType: 'blob' })
+              .then((response) => {
+                const file = new Blob([response.data], {
+                  type: 'application/zip',
+                });
+                const a = document.createElement('a');
+                document.body.appendChild(a);
+                const blobUrl = window.URL.createObjectURL(file);
+                a.href = blobUrl;
+                a.download = `${videoInfo.title} e outras ${
+                  relatedVideoInfo.length - 1
+                }.zip`;
+                a.click();
+
+                setDownloadLinkLoading(false);
+              })
+              .catch((error) => {
+                setDownloadLinkLoading(false);
+                toast.error('Erro ao baixar música');
+              });
+          } else {
+            await sleep(3000);
+            console.log('Aguardando arquivo ficar pronto');
+          }
+        }
       } catch (error) {
         setDownloadLinkLoading(false);
       }
@@ -211,6 +287,22 @@ export default function Index() {
       {arrayGifs && downloadLoading && (
         <>
           <div>
+            <Line
+              percent={percentProgress || 0}
+              strokeWidth="2"
+              strokeColor="#28a745"
+              style={{
+                position: 'absolute',
+                zIndex: 501,
+                maxWidth: '100%',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                left: '0',
+                right: '0',
+                top: '0',
+              }}
+            />
+
             <img
               src={arrayGifs[parseInt(Math.random() * (7 - 0) + 0)]}
               alt="Aguardando"
