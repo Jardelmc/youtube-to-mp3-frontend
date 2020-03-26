@@ -14,6 +14,8 @@ import gif6 from '../../assets/6.webp';
 import gif7 from '../../assets/7.webp';
 
 import github from '../../assets/git.svg';
+import zip from '../../assets/zip.svg';
+import youtube from '../../assets/youtube.png';
 
 export default function Index() {
   const [initialized, setInitialized] = useState(false);
@@ -25,6 +27,7 @@ export default function Index() {
   const [arrayGifs, setArrayGifs] = useState(false);
 
   const [selectedVideos, setSelectedVideos] = useState(false);
+  const [selectedArrayIdsVideos, setSelectedArrayIdsVideos] = useState({});
   const [percentProgress, setPercentProgress] = useState(false);
 
   const getVideoInfo = useCallback(async (youtubeUrl) => {
@@ -65,7 +68,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!initialized) {
-      //getVideoInfo('https://www.youtube.com/watch?v=mvyhprS1c-Y');
+      // getVideoInfo('https://www.youtube.com/watch?v=mvyhprS1c-Y');
       setArrayGifs([gif1, gif2, gif3, gif4, gif5, gif6, gif7]);
       setInitialized(true);
     }
@@ -140,7 +143,6 @@ export default function Index() {
               });
           } else {
             await sleep(3000);
-            console.log('Aguardando arquivo ficar pronto');
           }
         }
       } catch (error) {
@@ -175,7 +177,7 @@ export default function Index() {
 
         let control = false;
 
-        const maxVideoForDownloadLength = selectedVideos.length + 1;
+        const maxVideoForDownloadLength = selectedVideos.length;
 
         while (!control) {
           const responseCheckStatus = await api.post('checkStatus', {
@@ -212,9 +214,11 @@ export default function Index() {
                 const blobUrl = window.URL.createObjectURL(file);
                 a.href = blobUrl;
                 a.download = `${videoInfo.title} e outras ${
-                  relatedVideoInfo.length - 1
+                  selectedVideos.length - 1
                 }.zip`;
                 a.click();
+
+                setSelectedArrayIdsVideos({});
 
                 setDownloadLinkLoading(false);
               })
@@ -224,7 +228,6 @@ export default function Index() {
               });
           } else {
             await sleep(3000);
-            console.log('Aguardando arquivo ficar pronto');
           }
         }
       } catch (error) {
@@ -234,23 +237,37 @@ export default function Index() {
   });
 
   const handleChangeSelect = (value) => {
-    let alreadyAdded = true;
+    let alreadyAdded = false;
 
     selectedVideos.forEach((videoData) => {
       if (videoData.relatedId === value.relatedId) {
-        alreadyAdded = false;
+        alreadyAdded = true;
       }
     });
 
-    if (alreadyAdded) {
+    if (!alreadyAdded) {
       const tempArray = selectedVideos.map((x) => x);
       tempArray.push(value);
+
+      const tempVar = selectedArrayIdsVideos;
+      const tempVidId = value.relatedId;
+
+      tempVar[tempVidId] = tempVidId;
+
+      setSelectedArrayIdsVideos(tempVar);
 
       setSelectedVideos(tempArray);
     } else {
       const tempArray = selectedVideos.filter(
         (x) => x.relatedId !== value.relatedId
       );
+      const tempVar = selectedArrayIdsVideos;
+      const tempVidId = value.relatedId;
+
+      tempVar[tempVidId] = false;
+
+      setSelectedArrayIdsVideos(tempVar);
+
       setSelectedVideos(tempArray);
     }
   };
@@ -268,46 +285,37 @@ export default function Index() {
             style={{
               position: 'fixed',
               top: '6vh',
-              right: '7vh',
-              height: '6vh',
-              minHeight: '48px',
-              fontSize: '2vh',
+              right: '9vw',
+              height: '12vw',
+              width: '20vw',
+              maxWidth: '96px',
+              maxHeight: '48px',
+              fontSize: '1.6rem',
               zIndex: 600,
               opacity: downloadLoading ? '40%' : '100%',
               pointerEvents: downloadLoading ? 'none' : 'all',
+              display: selectedVideos.length > 1 ? 'block' : 'none',
             }}
             disabled={downloadLoading}
             variant="success"
             onClick={() => handleDownloadMany()}
           >
-            <strong>Baixar {selectedVideos.length} como ZIP</strong>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <img src={zip} alt="Download" style={{ width: '3rem' }} />
+
+              <strong>&emsp;{selectedVideos.length}</strong>
+            </div>
           </Button>
         )}
 
       {arrayGifs && downloadLoading && (
         <>
           <div>
-            <Line
-              percent={percentProgress || 0}
-              strokeWidth="2"
-              strokeColor="#28a745"
-              style={{
-                position: 'absolute',
-                zIndex: 501,
-                maxWidth: '100%',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                left: '0',
-                right: '0',
-                top: '0',
-              }}
-            />
-
             <img
               src={arrayGifs[parseInt(Math.random() * (7 - 0) + 0)]}
               alt="Aguardando"
               style={{
-                position: 'absolute',
+                position: 'fixed',
                 zIndex: 500,
                 maxWidth: '20vh',
                 marginLeft: 'auto',
@@ -328,15 +336,13 @@ export default function Index() {
                 role="status"
                 variant="light"
                 style={{
-                  position: 'absolute',
+                  position: 'fixed',
                   zIndex: 501,
                   maxWidth: '20vh',
                   marginLeft: 'auto',
                   marginRight: 'auto',
-
                   left: '0',
                   right: '0',
-
                   bottom: '25vh',
                 }}
                 className="d-flex "
@@ -344,6 +350,23 @@ export default function Index() {
                 <span className="sr-only">Loading...</span>
               </Spinner>
             )}
+
+            <div style={{ width: '95%' }}>
+              <Line
+                percent={percentProgress || 0}
+                strokeWidth="1"
+                strokeColor="#28a745"
+                style={{
+                  position: 'fixed',
+                  zIndex: 501,
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  left: '0',
+                  right: '0',
+                  bottom: '16vh',
+                }}
+              />
+            </div>
           </div>
         </>
       )}
@@ -398,6 +421,18 @@ export default function Index() {
                     >
                       <strong>Download MP3</strong>
                     </Button>
+
+                    <Form.Check
+                      style={{
+                        position: 'absolute',
+                        bottom: '2vh',
+                        right: '1vh',
+                      }}
+                      type="switch"
+                      id="mainSwitch"
+                      checked
+                      label=" "
+                    />
                   </Card.Body>
                 </Card>
               </Container>
@@ -426,12 +461,18 @@ export default function Index() {
                             <Row
                               style={{
                                 width: '100%',
+                                minHeight: '6vh',
                                 display: 'flex',
                                 justifyContent: 'space-around',
                                 alignItems: 'center',
                               }}
                             >
                               <Button
+                                style={{
+                                  position: 'absolute',
+                                  bottom: '1vh',
+                                  left: '1vh',
+                                }}
                                 variant="success"
                                 onClick={() =>
                                   handleDownloadOne(
@@ -443,18 +484,28 @@ export default function Index() {
                                 <strong>Download MP3</strong>
                               </Button>
 
-                              <Form.Check
-                                type="switch"
-                                id={element.relatedId}
-                                label=" "
-                                style={{}}
-                                onChange={() =>
-                                  handleChangeSelect({
-                                    relatedId: element.relatedId,
-                                    relatedTitle: element.relatedTitle,
-                                  })
-                                }
-                              />
+                              {selectedArrayIdsVideos && (
+                                <Form.Check
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '1vh',
+                                    right: '1vh',
+                                  }}
+                                  type="switch"
+                                  id={element.relatedId}
+                                  checked={
+                                    selectedArrayIdsVideos[element.relatedId] ||
+                                    false
+                                  }
+                                  label=" "
+                                  onChange={() =>
+                                    handleChangeSelect({
+                                      relatedId: element.relatedId,
+                                      relatedTitle: element.relatedTitle,
+                                    })
+                                  }
+                                />
+                              )}
                             </Row>
                           </Card.Body>
                         </Card>
@@ -470,12 +521,25 @@ export default function Index() {
               style={{ width: '95%', background: '#28a745', margin: 'auto' }}
             >
               <Card.Header>
-                <strong>Youtube para MP3</strong>
+                <div style={{ position: 'relative' }}>
+                  <strong>Youtube para MP3</strong>
+                  <img
+                    src={youtube}
+                    alt="youtubeFoto"
+                    style={{
+                      width: '3rem',
+                      marginLeft: '40%',
+                      position: 'absolute',
+                      right: '0',
+                      top: '-0.6rem',
+                    }}
+                  />
+                </div>
               </Card.Header>
               <Card.Body>
                 <Card.Text>
                   Site desenvolvido para realizar o download do áudio de vídeos
-                  que estão no Youtube. <br />
+                  no Youtube. <br />
                   <br />
                   Basta colar o link do vídeo desejado acima e fazer o download.{' '}
                   <br />
@@ -496,7 +560,7 @@ export default function Index() {
             display: 'flex',
             justifyContent: 'center',
             background: '#eee',
-            marginTop: '50%',
+            marginTop: '35rem',
             width: '100%',
             maxWidth: '712px',
           }}
@@ -506,7 +570,7 @@ export default function Index() {
             style={{ textDecoration: 'none', color: 'inherit' }}
           >
             <img src={github} alt="github" style={{ maxWidth: '2.5vh' }} />
-            &emsp;Jardel Casteluber
+            &emsp;Github
           </a>
         </div>
       </div>
