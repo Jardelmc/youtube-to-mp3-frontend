@@ -5,14 +5,6 @@ import { Line } from 'rc-progress';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 
-import gif1 from '../../assets/1.webp';
-import gif2 from '../../assets/2.webp';
-import gif3 from '../../assets/3.webp';
-import gif4 from '../../assets/4.webp';
-import gif5 from '../../assets/5.webp';
-import gif6 from '../../assets/6.webp';
-import gif7 from '../../assets/7.webp';
-
 import github from '../../assets/git.svg';
 import zip from '../../assets/zip.svg';
 import youtube from '../../assets/youtube.png';
@@ -24,11 +16,29 @@ export default function Index() {
 
   const [linkLoading, setLinkLoading] = useState(false);
   const [downloadLoading, setDownloadLinkLoading] = useState(false);
-  const [arrayGifs, setArrayGifs] = useState(false);
 
   const [selectedVideos, setSelectedVideos] = useState(false);
   const [selectedArrayIdsVideos, setSelectedArrayIdsVideos] = useState({});
   const [percentProgress, setPercentProgress] = useState(false);
+
+  const [gifs, setGifs] = useState([
+    'https://media1.giphy.com/media/PWfHC8ogZpWcE/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media2.giphy.com/media/tXL4FHPSnVJ0A/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media0.giphy.com/media/Emg9qPKR5hquI/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media1.giphy.com/media/8TT8VjZTZGWQw/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media2.giphy.com/media/26n6xBpxNXExDfuKc/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media3.giphy.com/media/KHQ5ZdSKLrGNouNsrX/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media3.giphy.com/media/xTkcEQACH24SMPxIQg/giphy.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=giphy.webp',
+    'https://media3.giphy.com/media/o5oLImoQgGsKY/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media3.giphy.com/media/229Pljon180JF07BaX/giphy.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=giphy.webp',
+    'https://media1.giphy.com/media/l0HlBO7eyXzSZkJri/200.webp?cid=ecf05e47c4e8e4092c502e8dd95820b6507c28b5e6527760&rid=200.webp',
+    'https://media1.giphy.com/media/3s4utjscHJjknwyIMw/200.webp?cid=ecf05e47d90f980038b23327d673acf82ac19671016ec9ef&rid=200.webp',
+    'https://media3.giphy.com/media/3o7TKxOhkp8gO0LXMI/200.webp?cid=ecf05e47d90f980038b23327d673acf82ac19671016ec9ef&rid=200.webp',
+    'https://media3.giphy.com/media/hl0Kk1UNmRfQk/200.webp?cid=ecf05e47d90f980038b23327d673acf82ac19671016ec9ef&rid=200.webp',
+    'https://media2.giphy.com/media/vt77XPSOtZXPi/giphy.webp?cid=ecf05e47d90f980038b23327d673acf82ac19671016ec9ef&rid=giphy.webp',
+    'https://media0.giphy.com/media/wJcdtP5RAk9cQ/200.webp?cid=ecf05e47898a6f3d2e0cbc567b6dd3f3ddef7e20ff65ca26&rid=200.webp',
+    'https://media0.giphy.com/media/2uwZ4xi75JhxZYeyQB/200.webp?cid=ecf05e47898a6f3d2e0cbc567b6dd3f3ddef7e20ff65ca26&rid=200.webp',
+  ]);
 
   const getVideoInfo = useCallback(async (youtubeUrl) => {
     setLinkLoading(true);
@@ -83,7 +93,6 @@ export default function Index() {
   useEffect(() => {
     if (!initialized) {
       //getVideoInfo('https://www.youtube.com/watch?v=mvyhprS1c-Y');
-      setArrayGifs([gif1, gif2, gif3, gif4, gif5, gif6, gif7]);
       setInitialized(true);
     }
   }, [initialized]);
@@ -331,11 +340,11 @@ export default function Index() {
           </Button>
         )}
 
-      {arrayGifs && downloadLoading && (
+      {gifs && downloadLoading && (
         <>
           <div>
             <img
-              src={arrayGifs[parseInt(Math.random() * (7 - 0) + 0)]}
+              src={gifs[parseInt(Math.random() * (7 - 0) + 0)]}
               alt="Aguardando"
               style={{
                 position: 'fixed',
