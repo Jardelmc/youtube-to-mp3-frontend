@@ -40,8 +40,20 @@ export default function Index() {
 
         if (status === 200) {
           if (!data.err) {
-            const { title, thumbnailUrl, videoId, relatedVideoInfo } = data;
-            setVideoInfo({ title, thumbnailUrl, videoId, relatedVideoInfo });
+            const {
+              title,
+              thumbnailUrl,
+              videoId,
+              duration,
+              relatedVideoInfo,
+            } = data;
+            setVideoInfo({
+              title,
+              thumbnailUrl,
+              videoId,
+              duration,
+              relatedVideoInfo,
+            });
             const newSelectedVideo = [];
 
             // Para preencher array de videos selecionados com o inserido como valor
@@ -59,6 +71,8 @@ export default function Index() {
         }
       }
 
+      window.scroll({ top: 150, left: 0, behavior: 'smooth' });
+
       setLinkLoading(false);
     } catch (error) {
       setLinkLoading(false);
@@ -68,7 +82,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!initialized) {
-      // getVideoInfo('https://www.youtube.com/watch?v=mvyhprS1c-Y');
+      //getVideoInfo('https://www.youtube.com/watch?v=mvyhprS1c-Y');
       setArrayGifs([gif1, gif2, gif3, gif4, gif5, gif6, gif7]);
       setInitialized(true);
     }
@@ -81,6 +95,15 @@ export default function Index() {
         getVideoInfo(value);
       }
     }
+  };
+
+  const handleClearData = () => {
+    document.getElementById('linkField').value = '';
+    setUrl(false);
+    setVideoInfo(false);
+    setPercentProgress(false);
+    setSelectedVideos(false);
+    setSelectedArrayIdsVideos({});
   };
 
   const sleep = (milliseconds) => {
@@ -215,7 +238,7 @@ export default function Index() {
                 a.href = blobUrl;
                 a.download = `${videoInfo.title} e outras ${
                   selectedVideos.length - 1
-                }.zip`;
+                } músicas relacionadas.zip`;
                 a.click();
 
                 setSelectedArrayIdsVideos({});
@@ -364,6 +387,8 @@ export default function Index() {
                   left: '0',
                   right: '0',
                   bottom: '16vh',
+                  maxWidth: '400px',
+                  width: '85%',
                 }}
               />
             </div>
@@ -380,17 +405,39 @@ export default function Index() {
         }}
       >
         <Container>
-          <Form.Label style={{ color: '#eee', fontSize: '3vh' }}>
-            <strong>&emsp;Link do vídeo: </strong>
+          <Form.Label style={{ color: '#eee', fontSize: '2rem' }}>
+            <strong>&nbsp;&nbsp;&nbsp;Link do vídeo: </strong>
           </Form.Label>
           <Container className="d-flex ">
             <Form.Control
               size="lg"
               type="text"
-              placeholder="https://www.youtube.com/watch?v=mvyhprS1c-Y"
+              placeholder="Ex: https://www.youtube.com/watch?v=L5M8_gwioh0"
               style={{ height: '7vh', minHeight: '52px', marginTop: '2vh' }}
               onChange={(e) => handleChangeUrlInput(e.target.value)}
+              id="linkField"
             />
+
+            {url && !linkLoading && (
+              <button
+                type="button"
+                class="close"
+                aria-label="Close"
+                style={{ background: 'none', border: 'none' }}
+                onClick={() => {
+                  handleClearData();
+                }}
+              >
+                &nbsp; &nbsp; &nbsp; &nbsp;
+                <span
+                  aria-hidden="true"
+                  class="text-white"
+                  style={{ fontSize: '3rem' }}
+                >
+                  &times;
+                </span>
+              </button>
+            )}
 
             {linkLoading && (
               <Spinner
@@ -407,13 +454,38 @@ export default function Index() {
           <br />
           <br />
 
-          {videoInfo && videoInfo.title ? (
+          {videoInfo && videoInfo.title && url ? (
             <>
               <Container>
                 <Card style={{ width: '75%', margin: 'auto' }} className="p-2">
                   <Card.Img variant="top" src={videoInfo.thumbnailUrl} />
                   <Card.Body>
-                    <Card.Title>{videoInfo.title}</Card.Title>
+                    <Card.Title>
+                      {videoInfo.title}
+                      <br />
+                      <br />
+                      <br />
+                    </Card.Title>
+
+                    <div
+                      style={{
+                        // color: '#9b9b9b',
+                        background: '#fff',
+                        borderRadius: '20px',
+                        position: 'absolute',
+                        top: '2vh',
+                        right: '2.5vh',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '1rem',
+                          padding: '0.5vw',
+                        }}
+                      >
+                        {videoInfo.duration}
+                      </span>
+                    </div>
 
                     <Button
                       variant="success"
@@ -456,6 +528,27 @@ export default function Index() {
                             variant="top"
                             src={element.relatedThumbnail}
                           />
+
+                          <div
+                            style={{
+                              // color: '#9b9b9b',
+                              background: '#fff',
+                              borderRadius: '20px',
+                              position: 'absolute',
+                              top: '2vh',
+                              right: '2.5vh',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: '1rem',
+                                padding: '0.5vw',
+                              }}
+                            >
+                              {element.relatedDuration}
+                            </span>
+                          </div>
+
                           <Card.Body>
                             <Card.Title>{element.relatedTitle}</Card.Title>
                             <Row
@@ -471,7 +564,7 @@ export default function Index() {
                                 style={{
                                   position: 'absolute',
                                   bottom: '1vh',
-                                  left: '1vh',
+                                  left: '2vh',
                                 }}
                                 variant="success"
                                 onClick={() =>
@@ -516,42 +609,55 @@ export default function Index() {
               </Container>
             </>
           ) : (
-            <Card
-              text={'white'}
-              style={{ width: '95%', background: '#28a745', margin: 'auto' }}
-            >
-              <Card.Header>
-                <div style={{ position: 'relative' }}>
-                  <strong>Youtube para MP3</strong>
-                  <img
-                    src={youtube}
-                    alt="youtubeFoto"
-                    style={{
-                      width: '3rem',
-                      marginLeft: '40%',
-                      position: 'absolute',
-                      right: '0',
-                      top: '-0.6rem',
-                    }}
-                  />
-                </div>
-              </Card.Header>
-              <Card.Body>
-                <Card.Text>
-                  Site desenvolvido para realizar o download do áudio de vídeos
-                  no Youtube. <br />
-                  <br />
-                  Basta colar o link do vídeo desejado acima e fazer o download.{' '}
-                  <br />
-                  <br />
-                  É possível também baixar de forma prática áudios de vídeos
-                  relacionados, todos ficam exibidos no mesmo lugar, vc escolhe
-                  e baixa na hora. Simples assim.
-                  <br />
-                  <br />
-                </Card.Text>
-              </Card.Body>
-            </Card>
+            <div style={{}}>
+              <br />
+              <br />
+              <br />
+              <Card
+                text={'white'}
+                style={{
+                  width: '75%',
+                  maxWidth: '480px',
+                  background: '#28a745',
+                  margin: 'auto',
+                }}
+              >
+                <Card.Header>
+                  <div style={{ position: 'relative' }}>
+                    <strong>Youtube para MP3</strong>
+                    <img
+                      src={youtube}
+                      alt="youtubeFoto"
+                      style={{
+                        width: '2.5rem',
+                        marginLeft: '40%',
+                        position: 'absolute',
+                        right: '0',
+                        top: '-0.3rem',
+                      }}
+                    />
+                  </div>
+                </Card.Header>
+                <Card.Body>
+                  <Card.Text style={{ textAlign: 'justify' }}>
+                    Baixe o áudio de vídeos do Youtube em formato MP3 e ouça
+                    offline quando quiser. <br />
+                    <br />
+                    Basta colar o link do vídeo desejado acima e fazer o
+                    download. <br />
+                    <br />
+                    É possível também baixar de forma prática áudios de vídeos
+                    relacionados, todos ficam exibidos no mesmo lugar, basta
+                    selecionar quantos quiser e baixar.
+                    <br />
+                    <br />
+                    Simples assim.
+                    <br />
+                    Gratuito e sem propagandas.
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </div>
           )}
         </Container>
 
@@ -560,7 +666,7 @@ export default function Index() {
             display: 'flex',
             justifyContent: 'center',
             background: '#eee',
-            marginTop: '35rem',
+            marginTop: '30vh',
             width: '100%',
             maxWidth: '712px',
           }}
