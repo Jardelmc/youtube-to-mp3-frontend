@@ -229,7 +229,7 @@ export default function Index() {
             const percentTemp =
               (responseCheckStatus.data.tempDownloaded * 100) /
               maxVideoForDownloadLength;
-            setPercentProgress(percentTemp);
+            setPercentProgress(percentTemp < 95 ? percentTemp : 97);
           }
 
           if (responseCheckStatus.data.isReady) {
@@ -344,7 +344,7 @@ export default function Index() {
         <>
           <div>
             <img
-              src={gifs[parseInt(Math.random() * (7 - 0) + 0)]}
+              src={gifs[parseInt(Math.random() * (16 - 0) + 0)]}
               alt="Aguardando"
               style={{
                 position: 'fixed',
